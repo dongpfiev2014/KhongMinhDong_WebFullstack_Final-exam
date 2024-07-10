@@ -138,23 +138,16 @@ export const getSortedFilms = async (req, res) => {
 };
 
 export const uploadFilm = async (req, res) => {
-  const { id } = req.params;
-  console.log(id);
-  const file = req.file;
-  console.log(file);
-  if (!file || !file.length || !id) throw new Error("Invalid id or file");
   try {
-    if (!file) {
-      throw new Error("File not found");
-    }
+    const { id } = req.params;
+    const file = req.file;
+    if (!file || !id) throw new Error("Id or file not found");
     const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(
       "base64"
     )}`;
     const fileName = file.originalname.split(".")[0];
-    console.log(dataUrl);
-    console.log(fileName);
 
-    cloudinary.uploader.upload(
+    const result = await cloudinary.uploader.upload(
       dataUrl,
       {
         public_id: fileName,
@@ -163,19 +156,31 @@ export const uploadFilm = async (req, res) => {
       },
       (err, result) => {
         if (err) {
-          console.log(err);
           throw new Error("Error uploading");
         }
         if (result) {
-          console.log(result);
-          res.status(200).send({
-            data: file,
-            message: "Uploaded successfully",
-            dataUrl: result.secure_url,
-          });
         }
       }
     );
+    const updatedPosterFilm = await FilmModel.findByIdAndUpdate(
+      id,
+      {
+        poster: result.secure_url,
+      },
+      { new: true }
+    );
+    if (!updatedPosterFilm) {
+      return res.status(404).send({
+        message: "Film not found",
+        success: false,
+        data: null,
+      });
+    }
+    res.status(200).send({
+      message: "Uploaded successfully",
+      dataUrl: result.secure_url,
+      data: updatedPosterFilm,
+    });
   } catch (error) {
     res.status(500).send({
       data: null,
