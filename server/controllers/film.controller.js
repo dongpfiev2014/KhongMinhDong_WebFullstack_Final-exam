@@ -1,4 +1,11 @@
 import FilmModel from "../models/films/film.model.js";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: "dq4kbmkrf",
+  api_key: "268696593414899",
+  api_secret: process.env.CLOUDINARY_API_SECRET, // Click 'View Credentials' below to copy your API secret
+});
 
 export const getAllFilms = async (req, res) => {
   try {
@@ -126,6 +133,54 @@ export const getSortedFilms = async (req, res) => {
       message: error.message,
       success: false,
       data: null,
+    });
+  }
+};
+
+export const uploadFilm = async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  const file = req.file;
+  console.log(file);
+  if (!file || !file.length || !id) throw new Error("Invalid id or file");
+  try {
+    if (!file) {
+      throw new Error("File not found");
+    }
+    const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(
+      "base64"
+    )}`;
+    const fileName = file.originalname.split(".")[0];
+    console.log(dataUrl);
+    console.log(fileName);
+
+    cloudinary.uploader.upload(
+      dataUrl,
+      {
+        public_id: fileName,
+        resource_type: "auto",
+        folder: "images",
+      },
+      (err, result) => {
+        if (err) {
+          console.log(err);
+          throw new Error("Error uploading");
+        }
+        if (result) {
+          console.log(result);
+          res.status(200).send({
+            data: file,
+            message: "Uploaded successfully",
+            dataUrl: result.secure_url,
+          });
+        }
+      }
+    );
+  } catch (error) {
+    res.status(500).send({
+      data: null,
+      success: false,
+      message: error.message,
     });
   }
 };
