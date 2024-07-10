@@ -3,7 +3,7 @@ import UsersModel from "../models/users/user.model.js";
 export const getAllUsers = async (req, res) => {
   try {
     const allUsers = await UsersModel.find();
-    if (allUsers) {
+    if (allUsers.length > 0) {
       res.status(200).send({
         message: "All users have found successfully",
         total: allUsers.length,

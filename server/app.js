@@ -9,6 +9,8 @@ import {
 } from "./middlewares/auth.middleware.js";
 import { getAdminPage } from "./controllers/user.controller.js";
 import cors from "cors";
+import filmRouter from "./routes/film.route.js";
+import searchRouter from "./routes/search.route.js";
 // import multer from "multer";
 // import bodyParser from "body-parser";
 // import { v2 as cloudinary } from "cloudinary";
@@ -36,6 +38,7 @@ app.use(
   })
 );
 app.use(express.json());
+
 // const storage = multer.memoryStorage();
 // const upload = multer({ storage });
 
@@ -88,7 +91,8 @@ app.use("/api/v1/auth", authRouter);
 
 app.use(verifyUserAuthentication);
 app.use("/api/v1/users", userRouter);
-app.get("/api/v1/admin", verifyUserAuthorization, getAdminPage);
+app.use("/api/v1/film", filmRouter);
+app.use("/api/v1/search", searchRouter);
 
 connectDB().then(() => {
   app
@@ -101,5 +105,3 @@ connectDB().then(() => {
       console.error("Failed to start server:", err);
     });
 });
-
-console.log("hello");
