@@ -26,7 +26,13 @@ export const getAllFilms = async (req, res) => {
 
 export const addFilm = async (req, res) => {
   try {
-    const newFilm = new FilmModel(req.body);
+    const data = req.body;
+    if (!data)
+      return res.status(400).send({
+        message: "No data provided",
+        success: false,
+      });
+    const newFilm = new FilmModel(data);
     const savedFilm = await newFilm.save();
     res.status(201).send({
       message: "New film has been created successfully",
@@ -44,11 +50,12 @@ export const addFilm = async (req, res) => {
 
 export const updateFilm = async (req, res) => {
   try {
-    const updatedFilm = await FilmModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const { id } = req.params;
+    const data = req.body;
+    if (!data || !id) throw new Error("Data or id not found");
+    const updatedFilm = await FilmModel.findByIdAndUpdate(id, data, {
+      new: true,
+    });
     if (!updatedFilm)
       return res.status(404).send({
         message: "Film not found",
@@ -71,6 +78,8 @@ export const updateFilm = async (req, res) => {
 
 export const deleteFilm = async (req, res) => {
   try {
+    const { id } = req.params;
+    if (!id) throw new Error("Id not found");
     const deletedFilm = await FilmModel.findByIdAndDelete(req.params.id);
     if (!deletedFilm)
       return res.status(404).send({
